@@ -10,9 +10,15 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import org.hamcrest.CoreMatchers;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
@@ -27,6 +33,39 @@ import br.ce.wcaquino.utils.DataUtils;
 
 public class LocacaoServiceTest {
 	
+	static LocacaoService service;
+	
+	/**
+	 * Before é executado antes de cada método de teste
+	 */
+	@Before
+	public void setup() {
+		service = new LocacaoService();
+	}
+	
+	/**
+	 * After é executado depois de cada método de teste
+	 */
+	@After
+	public void after() {
+		System.out.println("After");
+	}
+	
+	/**
+	 * Before é executado antes de cada método de teste
+	 */
+	@BeforeClass
+	public static void setupClass() {
+		System.out.println("Before class");
+	}
+	
+	/**
+	 * After é executado depois de cada método de teste
+	 */
+	@AfterClass
+	public static void afterClass() {
+		System.out.println("After class");
+	}
 	
 	/**
 	 * O ideal é que cada método de teste, seja utilizado para validar um único ponto, e que tenha apenas uma assertiva, visto que o Junit para ao encontrar uma assertiva que falhou,
@@ -37,13 +76,12 @@ public class LocacaoServiceTest {
 	
 	@Test
 	public void testeLocacao() throws Exception {
-		LocacaoService service = new LocacaoService();
 		
 		Usuario usuario = new Usuario("Usuario 1");
-		Filme filme = new Filme("Filme 1", 2, 5.0);
+		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 2, 5.0));
 		
 		// Ação
-		Locacao locacao = service.alugarFilme(usuario, filme);
+		Locacao locacao = service.alugarFilme(usuario, filmes);
 		
 		assertEquals(5.0, locacao.getValor(), 0.01);
 		
@@ -78,13 +116,12 @@ public class LocacaoServiceTest {
 	 */
 	@Test
 	public void testeLocacaoComRule() throws Exception {
-		LocacaoService service = new LocacaoService();
 		
 		Usuario usuario = new Usuario("Usuario 1");
-		Filme filme = new Filme("Filme 1", 1, 5.0);
+		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 1, 5.0));
 		
 		// Ação
-		Locacao locacao = service.alugarFilme(usuario, filme);
+		Locacao locacao = service.alugarFilme(usuario, filmes);
 		
 		error.checkThat(locacao.getValor(), CoreMatchers.is(5.0));
 		error.checkThat(locacao.getValor(), is(equalTo(5.0)));
@@ -106,13 +143,11 @@ public class LocacaoServiceTest {
 	@Test(expected=FilmeSemEstoqueException.class)
 	public void testLocacao_filmeSemEstoqueEvitarAssim() throws Exception {
 	
-		LocacaoService service = new LocacaoService();
-		
 		Usuario usuario = new Usuario("Usuario 1");
-		Filme filme = new Filme("Filme 1", 0, 5.0);
+		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 0, 5.0));
 		
 		// Ação
-		Locacao locacao = service.alugarFilme(usuario, filme);
+		Locacao locacao = service.alugarFilme(usuario, filmes);
 		
 	}
 	
@@ -122,14 +157,12 @@ public class LocacaoServiceTest {
 	@Test
 	public void testLocacao_filmeSemEstoqueSegundaPreferencia() {
 	
-		LocacaoService service = new LocacaoService();
-		
 		Usuario usuario = new Usuario("Usuario 1");
-		Filme filme = new Filme("Filme 1", 0, 5.0);
+		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 0, 5.0));
 		
 		try {
 			// Ação
-			Locacao locacao = service.alugarFilme(usuario, filme);
+			Locacao locacao = service.alugarFilme(usuario, filmes);
 			
 			// Necessário esse assertfail, pois o objetivo aqui é validar se a regra de filme sem estoque está funcional.
 			// Então esse teste deve lançar exception para ser considerado válido.
@@ -151,27 +184,23 @@ public class LocacaoServiceTest {
 	 */
 	public void testLocacao_filmeSemEstoquePreferirEsseTratamento() throws Exception {
 	
-		LocacaoService service = new LocacaoService();
-		
 		Usuario usuario = new Usuario("Usuario 1");
-		Filme filme = new Filme("Filme 1", 0, 5.0);
+		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 0, 5.0));
 		
 		// Deve ser declarado antes da execução da ação
 		exException.expect(Exception.class);
 		exException.expectMessage("Filme sem estoque");
 		
 		// Ação
-		Locacao locacao = service.alugarFilme(usuario, filme);
+		Locacao locacao = service.alugarFilme(usuario, filmes);
 
 	}
 	
 	@Test
 	public void testLocacao_UsuarioVazio() throws FilmeSemEstoqueException {
 	
-		LocacaoService service = new LocacaoService();
-		
 		Usuario usuario = null;
-		Filme filme = new Filme("Filme 1", 1, 5.0);
+		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 1, 5.0));
 		
 		/*
 		 * Neste caso, como está sem esperado uma LocadoraException, qualquer outra exception, como o FilmeSemEstoqueException, 
@@ -181,7 +210,7 @@ public class LocacaoServiceTest {
 		
 		try {
 			// Ação
-			Locacao locacao = service.alugarFilme(usuario, filme);
+			Locacao locacao = service.alugarFilme(usuario, filmes);
 			fail("Não está validando usuário");
 		} catch (LocadoraException e) {
 			assertThat(e.getMessage(), is("Usuário de locação não informado"));
@@ -196,8 +225,6 @@ public class LocacaoServiceTest {
 	 */
 	@Test
 	public void testeLocacao_FilmeVazio_PreferirEsseTratamento() throws LocadoraException, FilmeSemEstoqueException {
-		
-		LocacaoService service = new LocacaoService();
 		
 		Usuario usuario = new Usuario("Usuario 1");
 		
