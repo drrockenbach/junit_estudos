@@ -11,6 +11,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -48,7 +49,7 @@ public class LocacaoServiceTest {
 	 */
 	@After
 	public void after() {
-		System.out.println("After");
+//		System.out.println("After");
 	}
 	
 	/**
@@ -56,7 +57,7 @@ public class LocacaoServiceTest {
 	 */
 	@BeforeClass
 	public static void setupClass() {
-		System.out.println("Before class");
+//		System.out.println("Before class");
 	}
 	
 	/**
@@ -64,7 +65,7 @@ public class LocacaoServiceTest {
 	 */
 	@AfterClass
 	public static void afterClass() {
-		System.out.println("After class");
+//		System.out.println("After class");
 	}
 	
 	/**
@@ -75,7 +76,12 @@ public class LocacaoServiceTest {
 	 */
 	
 	@Test
-	public void testeLocacao() throws Exception {
+	public void deveAlugarFilme() throws Exception {
+		
+		/**
+		 * Com o assume, posso definir que o meu teste só vai executar em certas condições, como nesse exemplo, só quando não for sabados
+		 */
+//		assumeThat(new Date(), not(Calendar.SATURDAY));
 		
 		Usuario usuario = new Usuario("Usuario 1");
 		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 2, 5.0));
@@ -115,7 +121,7 @@ public class LocacaoServiceTest {
 	 * @throws Exception 
 	 */
 	@Test
-	public void testeLocacaoComRule() throws Exception {
+	public void deveAlugarFilmeComRule() throws Exception {
 		
 		Usuario usuario = new Usuario("Usuario 1");
 		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 1, 5.0));
@@ -141,13 +147,13 @@ public class LocacaoServiceTest {
 	 */
 	
 	@Test(expected=FilmeSemEstoqueException.class)
-	public void testLocacao_filmeSemEstoqueEvitarAssim() throws Exception {
+	public void naoDeveAlugarFilmeSemEstoque_filmeSemEstoqueEvitarAssim() throws Exception {
 	
 		Usuario usuario = new Usuario("Usuario 1");
 		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 0, 5.0));
 		
 		// Ação
-		Locacao locacao = service.alugarFilme(usuario, filmes);
+		service.alugarFilme(usuario, filmes);
 		
 	}
 	
@@ -155,14 +161,14 @@ public class LocacaoServiceTest {
 	 * Quando a exceção for mais genérica, é melhor validar assim.
 	 */
 	@Test
-	public void testLocacao_filmeSemEstoqueSegundaPreferencia() {
+	public void naoDeveAlugarFilmeSemEstoque_filmeSemEstoqueSegundaPreferencia() {
 	
 		Usuario usuario = new Usuario("Usuario 1");
 		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 0, 5.0));
 		
 		try {
 			// Ação
-			Locacao locacao = service.alugarFilme(usuario, filmes);
+			service.alugarFilme(usuario, filmes);
 			
 			// Necessário esse assertfail, pois o objetivo aqui é validar se a regra de filme sem estoque está funcional.
 			// Então esse teste deve lançar exception para ser considerado válido.
@@ -182,7 +188,7 @@ public class LocacaoServiceTest {
 	 * não sendo necessário colocar o fail caso não dê a expcetion como no anterior
 	 * @throws Exception
 	 */
-	public void testLocacao_filmeSemEstoquePreferirEsseTratamento() throws Exception {
+	public void naoDeveAlugarFilmeSemEstoque_filmeSemEstoquePreferirEsseTratamento() throws Exception {
 	
 		Usuario usuario = new Usuario("Usuario 1");
 		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 0, 5.0));
@@ -192,12 +198,12 @@ public class LocacaoServiceTest {
 		exException.expectMessage("Filme sem estoque");
 		
 		// Ação
-		Locacao locacao = service.alugarFilme(usuario, filmes);
+		service.alugarFilme(usuario, filmes);
 
 	}
 	
 	@Test
-	public void testLocacao_UsuarioVazio() throws FilmeSemEstoqueException {
+	public void naoDeveAlugarFilme_UsuarioVazio() throws FilmeSemEstoqueException {
 	
 		Usuario usuario = null;
 		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 1, 5.0));
@@ -210,7 +216,7 @@ public class LocacaoServiceTest {
 		
 		try {
 			// Ação
-			Locacao locacao = service.alugarFilme(usuario, filmes);
+			service.alugarFilme(usuario, filmes);
 			fail("Não está validando usuário");
 		} catch (LocadoraException e) {
 			assertThat(e.getMessage(), is("Usuário de locação não informado"));
@@ -224,7 +230,7 @@ public class LocacaoServiceTest {
 	 * @throws FilmeSemEstoqueException
 	 */
 	@Test
-	public void testeLocacao_FilmeVazio_PreferirEsseTratamento() throws LocadoraException, FilmeSemEstoqueException {
+	public void naoDeveAlugarFilme_FilmeVazio_PreferirEsseTratamento() throws LocadoraException, FilmeSemEstoqueException {
 		
 		Usuario usuario = new Usuario("Usuario 1");
 		
@@ -233,8 +239,105 @@ public class LocacaoServiceTest {
 		exException.expectMessage("Filme de locação não informado");
 		
 		// Ação
-		Locacao locacao = service.alugarFilme(usuario, null);
+		service.alugarFilme(usuario, null);
 		
+	}
+	
+	@Test
+	public void devePagar75porcentoNoFilme3() throws LocadoraException, FilmeSemEstoqueException {
+		// Cenario
+		
+		Usuario u = new Usuario("Usuario");
+		
+		List<Filme> filmes = Arrays.asList(new Filme("A", 1, 4.0), new Filme("B", 1, 4.0), new Filme("C", 1, 4.0));
+		
+		// acao
+		
+		Locacao locacao = service.alugarFilme(u, filmes);
+		
+		// verificacao
+		//4+4+3
+		
+		assertThat(locacao.getValor(), is(11.0));
+	}
+	
+	@Test
+	public void devePagar50porcentoNoFilme4() throws LocadoraException, FilmeSemEstoqueException {
+		// Cenario
+		
+		Usuario u = new Usuario("Usuario");
+		
+		List<Filme> filmes = Arrays.asList(new Filme("A", 1, 4.0), new Filme("B", 1, 4.0), new Filme("C", 1, 4.0), new Filme("D", 1, 4.0));
+		
+		// acao
+		
+		Locacao locacao = service.alugarFilme(u, filmes);
+		
+		// verificacao
+		//4+4+3+2
+		
+		assertThat(locacao.getValor(), is(13.0));
+	}
+	
+	@Test
+	public void devePagar25porcentoNoFilme5() throws LocadoraException, FilmeSemEstoqueException {
+		// Cenario
+		
+		Usuario u = new Usuario("Usuario");
+		
+		List<Filme> filmes = Arrays.asList(new Filme("A", 1, 4.0), new Filme("B", 1, 4.0), new Filme("C", 1, 4.0), new Filme("D", 1, 4.0), new Filme("E", 1, 4.0));
+		
+		// acao
+		
+		Locacao locacao = service.alugarFilme(u, filmes);
+		
+		// verificacao
+		//4+4+3+2+1
+		
+		assertThat(locacao.getValor(), is(14.0));
+	}
+	
+	@Test
+	public void naoDevePagar0porcentoNoFilme6() throws LocadoraException, FilmeSemEstoqueException {
+		// Cenario
+		
+		Usuario u = new Usuario("Usuario");
+		
+		List<Filme> filmes = Arrays.asList(new Filme("A", 1, 4.0), new Filme("B", 1, 4.0), new Filme("C", 1, 4.0), new Filme("D", 1, 4.0), new Filme("E", 1, 4.0), new Filme("F", 1, 4.0));
+		
+		// acao
+		
+		Locacao locacao = service.alugarFilme(u, filmes);
+		
+		// verificacao
+		//4+4+3+2+1
+		
+		assertThat(locacao.getValor(), is(14.0));
+	}
+	
+	@Test
+//	@Ignore // Se quiser ignorar algum teste
+	public void deveDevolverNaSegundaAoAlugarNoSabado() throws LocadoraException, FilmeSemEstoqueException {
+		
+		/**
+		 * Com o assume, posso definir que o meu teste só vai executar em certas condições, como nesse exemplo, só em sabados
+		 */
+//		assumeThat(new Date(), is(Calendar.SATURDAY));
+		
+		//Cenario 
+		Usuario u = new Usuario("Teste");
+		List<Filme> filmes = Arrays.asList(new Filme("A", 1, 4.0));
+		
+		Calendar sabado = Calendar.getInstance(); 
+		sabado.set(2019, Calendar.JULY, 6);
+		// acao
+		Locacao locacao = service.alugarFilme(u, filmes, sabado.getTime());
+		
+		// verificacao
+		boolean ehSegunda = DataUtils.verificarDiaSemana(locacao.getDataRetorno(), Calendar.MONDAY);
+		
+		assertThat(ehSegunda, is(true));
+				
 	}
 }
 
