@@ -18,6 +18,7 @@ import br.ce.wcaquino.utils.DataUtils;
 public class LocacaoService {
 	
 	private LocacaoDAO dao;
+	private SPCService spcService;
 
 	public Locacao alugarFilme(Usuario usuario, List<Filme> filmes, Date dataAtual) throws LocadoraException, FilmeSemEstoqueException {
 
@@ -31,6 +32,10 @@ public class LocacaoService {
 			throw new LocadoraException("Usuário de locação não informado");
 		}
 
+		if (spcService.possuiNegativacao(usuario)) {
+			throw new LocadoraException("Usuário Negativado");
+		}
+		
 		Locacao locacao = new Locacao();
 		locacao.setFilmes(filmes);
 		locacao.setUsuario(usuario);
@@ -97,6 +102,10 @@ public class LocacaoService {
 	
 	public void setLocacaoDAO(LocacaoDAO dao) {
 		this.dao = dao;
+	}
+	
+	public void setSPCService(SPCService service) {
+		this.spcService = service;
 	}
 	
 }

@@ -43,6 +43,7 @@ import br.ce.wcaquino.utils.DataUtils;
 public class LocacaoServiceTest {
 	
 	static LocacaoService service;
+	private SPCService spcService;
 	
 	/**
 	 * Before é executado antes de cada método de teste
@@ -53,6 +54,8 @@ public class LocacaoServiceTest {
 //		LocacaoDAO dao = new LocacaoDAOFake();
 		LocacaoDAO dao = Mockito.mock(LocacaoDAO.class);
 		service.setLocacaoDAO(dao);
+		spcService = Mockito.mock(SPCService.class);
+		service.setSPCService(spcService);
 	}
 	
 	/**
@@ -194,7 +197,8 @@ public class LocacaoServiceTest {
 	}
 
 	@Rule
-	public ExpectedException exException = ExpectedException.none(); 
+	public ExpectedException exException = ExpectedException.none();
+	 
 	
 	@Test
 	/**
@@ -354,6 +358,22 @@ public class LocacaoServiceTest {
 		assertThat(locacao.getDataRetorno(), caiNaSegunda());
 //		assertThat(locacao.getDataRetorno(), caiEm(Calendar.MONDAY));
 				
+	}
+	
+	@Test 
+	public void naoDeveAlugarFilmeParaNegativadoSPC() throws LocadoraException, FilmeSemEstoqueException {
+		
+		Usuario usuario = umUsuario().agora();
+		List<Filme> filmes = Arrays.asList(umFilme().agora());
+		
+		//topzera
+		Mockito.when(spcService.possuiNegativacao(usuario)).thenReturn(true);
+		
+		exException.expect(LocadoraException.class);
+		exException.expectMessage("Usuário Negativado");
+		
+		service.alugarFilme(usuario, filmes);
+		
 	}
 }
 
