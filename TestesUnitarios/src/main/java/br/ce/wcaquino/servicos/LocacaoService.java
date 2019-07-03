@@ -7,15 +7,17 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import br.ce.wcaquino.daos.LocacaoDAO;
 import br.ce.wcaquino.entidades.Filme;
 import br.ce.wcaquino.entidades.Locacao;
 import br.ce.wcaquino.entidades.Usuario;
 import br.ce.wcaquino.exception.FilmeSemEstoqueException;
 import br.ce.wcaquino.exception.LocadoraException;
 import br.ce.wcaquino.utils.DataUtils;
-import buildermaster.BuilderMaster;
 
 public class LocacaoService {
+	
+	private LocacaoDAO dao;
 
 	public Locacao alugarFilme(Usuario usuario, List<Filme> filmes, Date dataAtual) throws LocadoraException, FilmeSemEstoqueException {
 
@@ -44,7 +46,7 @@ public class LocacaoService {
 		locacao.setDataRetorno(dataEntrega);
 
 		// Salvando a locacao...
-		// TODO adicionar metodo para salvar
+		dao.salvar(locacao);
 
 		return locacao;
 	}
@@ -93,8 +95,8 @@ public class LocacaoService {
 
 	}
 	
-	public static void main(String[] args) {
-		new BuilderMaster().gerarCodigoClasse(Locacao.class);
+	public void setLocacaoDAO(LocacaoDAO dao) {
+		this.dao = dao;
 	}
-
+	
 }
