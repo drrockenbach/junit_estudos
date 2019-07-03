@@ -1,8 +1,11 @@
 package br.ce.wcaquino.servicos;
 
+import static br.ce.wcaquino.builders.FilmeBuilder.umFilme;
+import static br.ce.wcaquino.builders.FilmeBuilder.umFilmeSemEstoque;
+import static br.ce.wcaquino.builders.UsuarioBuilder.umUsuario;
 import static br.ce.wcaquino.matchers.MatchersProprios.caiNaSegunda;
-import static br.ce.wcaquino.matchers.MatchersProprios.ehHojeComDiferencaDias;
 import static br.ce.wcaquino.matchers.MatchersProprios.ehHoje;
+import static br.ce.wcaquino.matchers.MatchersProprios.ehHojeComDiferencaDias;
 import static br.ce.wcaquino.utils.DataUtils.isMesmaData;
 import static br.ce.wcaquino.utils.DataUtils.obterDataComDiferencaDias;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -86,8 +89,8 @@ public class LocacaoServiceTest {
 		 */
 //		assumeThat(new Date(), not(Calendar.SATURDAY));
 		
-		Usuario usuario = new Usuario("Usuario 1");
-		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 2, 5.0));
+		Usuario usuario = umUsuario().agora();
+		List<Filme> filmes = Arrays.asList(umFilme().agora());
 		
 		// Ação
 		Locacao locacao = service.alugarFilme(usuario, filmes);
@@ -126,8 +129,8 @@ public class LocacaoServiceTest {
 	@Test
 	public void deveAlugarFilmeComRule() throws Exception {
 		
-		Usuario usuario = new Usuario("Usuario 1");
-		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 1, 5.0));
+		Usuario usuario = umUsuario().agora();
+		List<Filme> filmes = Arrays.asList(umFilme().agora());
 		
 		// Ação
 		Locacao locacao = service.alugarFilme(usuario, filmes);
@@ -155,8 +158,8 @@ public class LocacaoServiceTest {
 	@Test(expected=FilmeSemEstoqueException.class)
 	public void naoDeveAlugarFilmeSemEstoque_filmeSemEstoqueEvitarAssim() throws Exception {
 	
-		Usuario usuario = new Usuario("Usuario 1");
-		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 0, 5.0));
+		Usuario usuario = umUsuario().agora();
+		List<Filme> filmes = Arrays.asList(umFilmeSemEstoque().agora());
 		
 		// Ação
 		service.alugarFilme(usuario, filmes);
@@ -169,8 +172,8 @@ public class LocacaoServiceTest {
 	@Test
 	public void naoDeveAlugarFilmeSemEstoque_filmeSemEstoqueSegundaPreferencia() {
 	
-		Usuario usuario = new Usuario("Usuario 1");
-		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 0, 5.0));
+		Usuario usuario = umUsuario().agora();
+		List<Filme> filmes = Arrays.asList(umFilmeSemEstoque().agora());
 		
 		try {
 			// Ação
@@ -196,8 +199,8 @@ public class LocacaoServiceTest {
 	 */
 	public void naoDeveAlugarFilmeSemEstoque_filmeSemEstoquePreferirEsseTratamento() throws Exception {
 	
-		Usuario usuario = new Usuario("Usuario 1");
-		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 0, 5.0));
+		Usuario usuario = umUsuario().agora();
+		List<Filme> filmes = Arrays.asList(umFilmeSemEstoque().agora());
 		
 		// Deve ser declarado antes da execução da ação
 		exException.expect(Exception.class);
@@ -212,7 +215,7 @@ public class LocacaoServiceTest {
 	public void naoDeveAlugarFilme_UsuarioVazio() throws FilmeSemEstoqueException {
 	
 		Usuario usuario = null;
-		List<Filme> filmes = Arrays.asList(new Filme("Filme 1", 1, 5.0));
+		List<Filme> filmes = Arrays.asList(umFilme().agora());
 		
 		/*
 		 * Neste caso, como está sem esperado uma LocadoraException, qualquer outra exception, como o FilmeSemEstoqueException, 
@@ -238,7 +241,7 @@ public class LocacaoServiceTest {
 	@Test
 	public void naoDeveAlugarFilme_FilmeVazio_PreferirEsseTratamento() throws LocadoraException, FilmeSemEstoqueException {
 		
-		Usuario usuario = new Usuario("Usuario 1");
+		Usuario usuario = umUsuario().agora();
 		
 		// Deve ser declarado antes da execução da ação
 		exException.expect(LocadoraException.class);
@@ -253,9 +256,9 @@ public class LocacaoServiceTest {
 	public void devePagar75porcentoNoFilme3() throws LocadoraException, FilmeSemEstoqueException {
 		// Cenario
 		
-		Usuario u = new Usuario("Usuario");
+		Usuario u = umUsuario().agora();
 		
-		List<Filme> filmes = Arrays.asList(new Filme("A", 1, 4.0), new Filme("B", 1, 4.0), new Filme("C", 1, 4.0));
+		List<Filme> filmes = Arrays.asList(umFilme().comValor(4.0).agora(), umFilme().comValor(4.0).agora(), umFilme().comValor(4.0).agora());
 		
 		// acao
 		
@@ -271,9 +274,9 @@ public class LocacaoServiceTest {
 	public void devePagar50porcentoNoFilme4() throws LocadoraException, FilmeSemEstoqueException {
 		// Cenario
 		
-		Usuario u = new Usuario("Usuario");
+		Usuario u = umUsuario().agora();
 		
-		List<Filme> filmes = Arrays.asList(new Filme("A", 1, 4.0), new Filme("B", 1, 4.0), new Filme("C", 1, 4.0), new Filme("D", 1, 4.0));
+		List<Filme> filmes = Arrays.asList(umFilme().comValor(4.0).agora(), umFilme().comValor(4.0).agora(), umFilme().comValor(4.0).agora(), umFilme().comValor(4.0).agora());
 		
 		// acao
 		
@@ -289,9 +292,9 @@ public class LocacaoServiceTest {
 	public void devePagar25porcentoNoFilme5() throws LocadoraException, FilmeSemEstoqueException {
 		// Cenario
 		
-		Usuario u = new Usuario("Usuario");
+		Usuario u = umUsuario().agora();
 		
-		List<Filme> filmes = Arrays.asList(new Filme("A", 1, 4.0), new Filme("B", 1, 4.0), new Filme("C", 1, 4.0), new Filme("D", 1, 4.0), new Filme("E", 1, 4.0));
+		List<Filme> filmes = Arrays.asList(umFilme().comValor(4.0).agora(), umFilme().comValor(4.0).agora(), umFilme().comValor(4.0).agora(), umFilme().comValor(4.0).agora(), umFilme().comValor(4.0).agora());
 		
 		// acao
 		
@@ -307,9 +310,9 @@ public class LocacaoServiceTest {
 	public void naoDevePagar0porcentoNoFilme6() throws LocadoraException, FilmeSemEstoqueException {
 		// Cenario
 		
-		Usuario u = new Usuario("Usuario");
+		Usuario u = umUsuario().agora();
 		
-		List<Filme> filmes = Arrays.asList(new Filme("A", 1, 4.0), new Filme("B", 1, 4.0), new Filme("C", 1, 4.0), new Filme("D", 1, 4.0), new Filme("E", 1, 4.0), new Filme("F", 1, 4.0));
+		List<Filme> filmes = Arrays.asList(umFilme().comValor(4.0).agora(), umFilme().comValor(4.0).agora(), umFilme().comValor(4.0).agora(), umFilme().comValor(4.0).agora(), umFilme().comValor(4.0).agora(), umFilme().comValor(4.0).agora());
 		
 		// acao
 		
@@ -331,8 +334,8 @@ public class LocacaoServiceTest {
 //		assumeThat(new Date(), is(Calendar.SATURDAY));
 		
 		//Cenario 
-		Usuario u = new Usuario("Teste");
-		List<Filme> filmes = Arrays.asList(new Filme("A", 1, 4.0));
+		Usuario u = umUsuario().agora();
+		List<Filme> filmes = Arrays.asList(umFilme().comValor(4.0).agora());
 		
 		Calendar sabado = Calendar.getInstance(); 
 		sabado.set(2019, Calendar.JULY, 6);
