@@ -2,6 +2,7 @@ package br.ce.wcaquino.servicos;
 
 import static br.ce.wcaquino.builders.FilmeBuilder.umFilme;
 import static br.ce.wcaquino.builders.FilmeBuilder.umFilmeSemEstoque;
+import static br.ce.wcaquino.builders.LocacaoBuilder.umLocacao;
 import static br.ce.wcaquino.builders.UsuarioBuilder.umUsuario;
 import static br.ce.wcaquino.matchers.MatchersProprios.caiNaSegunda;
 import static br.ce.wcaquino.matchers.MatchersProprios.ehHoje;
@@ -44,6 +45,8 @@ public class LocacaoServiceTest {
 	
 	static LocacaoService service;
 	private SPCService spcService;
+	private LocacaoDAO dao;
+	private EmailService emailService; 
 	
 	/**
 	 * Before é executado antes de cada método de teste
@@ -51,11 +54,12 @@ public class LocacaoServiceTest {
 	@Before
 	public void setup() {
 		service = new LocacaoService();
-//		LocacaoDAO dao = new LocacaoDAOFake();
-		LocacaoDAO dao = Mockito.mock(LocacaoDAO.class);
+		dao = Mockito.mock(LocacaoDAO.class);
 		service.setLocacaoDAO(dao);
 		spcService = Mockito.mock(SPCService.class);
 		service.setSPCService(spcService);
+		emailService = Mockito.mock(EmailService.class);
+		service.setEmailService(emailService);
 	}
 	
 	/**
@@ -198,6 +202,7 @@ public class LocacaoServiceTest {
 
 	@Rule
 	public ExpectedException exException = ExpectedException.none();
+	
 	 
 	
 	@Test
@@ -361,7 +366,7 @@ public class LocacaoServiceTest {
 	}
 	
 	@Test 
-	public void naoDeveAlugarFilmeParaNegativadoSPC() throws LocadoraException, FilmeSemEstoqueException {
+	public void naoDeveAlugarFilmeParaNegativadoSPC() throws /*LocadoraException,*/ FilmeSemEstoqueException {
 		
 		Usuario usuario = umUsuario().agora();
 		List<Filme> filmes = Arrays.asList(umFilme().agora());
@@ -369,10 +374,41 @@ public class LocacaoServiceTest {
 		//topzera
 		Mockito.when(spcService.possuiNegativacao(usuario)).thenReturn(true);
 		
-		exException.expect(LocadoraException.class);
-		exException.expectMessage("Usuário Negativado");
+		/**
+		 * Neste caso, como é necessário verificação posterior, não da pra utilizar o tratamento abaixo, pois o teste irá parar ao lançar a exception
+		 * 		 */
 		
-		service.alugarFilme(usuario, filmes);
+//		exException.expect(LocadoraException.class);
+//		exException.expectMessage("Usuário Negativado");
+		
+		// acao
+		try {
+			service.alugarFilme(usuario, filmes);
+			fail();
+		} catch (LocadoraException e) {
+			assertThat(e.getMessage(), is("Usuário Negativado"));
+		}
+		
+		//verificacao
+		// Verifica se na ação, o método possuiNegataivacao foi chamado com o usuário em questão
+		Mockito.verify(spcService).possuiNegativacao(usuario);
+		
+	}
+
+	@Test
+	public void deveEnvialEmailParaLocacoesAtrasadas() {
+		
+		Usuario usuario = umUsuario().agora();
+		
+		List<Locacao> locacoes = Arrays.asList(umLocacao().comUsuario(usuario).comDataRetorno(DataUtils.obterDataComDiferencaDias(-2)).agora()); 
+		
+		Mockito.when(dao.obterLocacoesPendentes()).thenReturn(locacoes);
+		
+		service.notificarAtrasos();
+		
+		// Verificacao
+		// Vai verificar se o método notificarAtraso foi chamado com o usuário em questão
+		Mockito.verify(emailService).notificarAtraso(usuario);
 		
 	}
 }
