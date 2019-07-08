@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
+import org.mockito.verification.VerificationMode;
 
 import br.ce.wcaquino.daos.LocacaoDAO;
 import br.ce.wcaquino.entidades.Filme;
@@ -399,8 +400,10 @@ public class LocacaoServiceTest {
 	public void deveEnvialEmailParaLocacoesAtrasadas() {
 		
 		Usuario usuario = umUsuario().agora();
+		Usuario usuario2 = umUsuario().comNome("Usuário em dia").agora();
 		
-		List<Locacao> locacoes = Arrays.asList(umLocacao().comUsuario(usuario).comDataRetorno(DataUtils.obterDataComDiferencaDias(-2)).agora()); 
+		List<Locacao> locacoes = Arrays.asList(umLocacao().comUsuario(usuario).atrasada().agora(),
+				umLocacao().comUsuario(usuario).atrasada().agora(), umLocacao().comUsuario(usuario2).agora()); 
 		
 		Mockito.when(dao.obterLocacoesPendentes()).thenReturn(locacoes);
 		
@@ -408,7 +411,30 @@ public class LocacaoServiceTest {
 		
 		// Verificacao
 		// Vai verificar se o método notificarAtraso foi chamado com o usuário em questão
-		Mockito.verify(emailService).notificarAtraso(usuario);
+//		Mockito.verify(emailService).notificarAtraso(usuario);
+		
+		/**
+		 * Da pra determinar o número de vezes que certo método vai deve ser chamado com determinado parâmetro
+		 * Também tem os métodos atLeast(x) (pelo menos x vezes), atLeastOnce() (pelo menos uma vez), atMost(x).
+		 *  
+		 */
+		Mockito.verify(emailService, Mockito.times(2)).notificarAtraso(usuario);
+		
+		/**
+		 * Ainda da pra verificar se um determinado método, foi chamado uma quantidade x de vezes, independente do parâmetro passado, desde que atenda a assinatura.
+		 * Então deve executar duas vezes, idependente do usuário recebido 
+		 */
+//		Mockito.verify(emailService, Mockito.times(2)).notificarAtraso(Mockito.any(Usuario.class));
+		
+		// Verifica que notificarAtraso com o usuario2 nunca foi chamado
+		Mockito.verify(emailService, Mockito.never()).notificarAtraso(usuario2);
+		
+		// Garantir que depois das execuções acima, não haverá mais nenhuma invocação ao service EmailService
+		Mockito.verifyNoMoreInteractions(emailService);
+		
+		// Garantir que não houve interações com o spc service nessa execução
+		// Isso é só um exemplo, não seria necessário testar isso, pois spcService não é utilizado nesse método notificarAtraso
+		Mockito.verifyZeroInteractions(spcService);
 		
 	}
 }
