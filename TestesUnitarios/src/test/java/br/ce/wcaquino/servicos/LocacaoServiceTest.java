@@ -31,8 +31,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.verification.VerificationMode;
+import org.mockito.MockitoAnnotations;
 
 import br.ce.wcaquino.daos.LocacaoDAO;
 import br.ce.wcaquino.entidades.Filme;
@@ -44,9 +46,18 @@ import br.ce.wcaquino.utils.DataUtils;
 
 public class LocacaoServiceTest {
 	
+	/**
+	 * Com as injeções dos mocks, não precisa nem dos sets no LocacaoService.
+	 */
+	
+	@InjectMocks
 	static LocacaoService service;
+	
+	@Mock
 	private SPCService spcService;
+	@Mock
 	private LocacaoDAO dao;
+	@Mock
 	private EmailService emailService; 
 	
 	/**
@@ -54,13 +65,22 @@ public class LocacaoServiceTest {
 	 */
 	@Before
 	public void setup() {
-		service = new LocacaoService();
-		dao = Mockito.mock(LocacaoDAO.class);
-		service.setLocacaoDAO(dao);
-		spcService = Mockito.mock(SPCService.class);
-		service.setSPCService(spcService);
-		emailService = Mockito.mock(EmailService.class);
-		service.setEmailService(emailService);
+		
+		/**
+		 * Isso, juntamente com as anotações nos services e dao, farão o trabalho de instanciar e setar os mocks no LocacaoService, 
+		 * substituindo as linhas comentadas abaixo.
+		 * A anotação @Mock define que será um mock, e a anotação @InjectMocks onde serão injetados os mocks
+		 * Com as injeções dos mocks, não precisa nem dos sets no LocacaoService.
+		 */
+		MockitoAnnotations.initMocks(this);
+		
+//		service = new LocacaoService();
+//		dao = Mockito.mock(LocacaoDAO.class);
+//		service.setLocacaoDAO(dao);
+//		spcService = Mockito.mock(SPCService.class);
+//		service.setSPCService(spcService);
+//		emailService = Mockito.mock(EmailService.class);
+//		service.setEmailService(emailService);
 	}
 	
 	/**
