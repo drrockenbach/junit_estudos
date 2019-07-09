@@ -17,30 +17,26 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.Spy;
 import org.powermock.reflect.Whitebox;
 
 import br.ce.wcaquino.daos.LocacaoDAO;
@@ -51,8 +47,6 @@ import br.ce.wcaquino.exception.FilmeSemEstoqueException;
 import br.ce.wcaquino.exception.LocadoraException;
 import br.ce.wcaquino.utils.DataUtils;
 
-@RunWith(PowerMockRunner.class) // Precisa definir isso para que o Junit assuma as definições do PowerMockito
-@PrepareForTest({LocacaoService.class, DataUtils.class}) // Também precisa definir isso para o PowerMock funcionar. Nesse caso apenas esse classe estará no escopo
 public class LocacaoServiceTest {
 	
 	/**
@@ -60,6 +54,7 @@ public class LocacaoServiceTest {
 	 */
 	
 	@InjectMocks
+	@Spy
 	private LocacaoService service;
 	
 	@Mock
@@ -87,7 +82,7 @@ public class LocacaoServiceTest {
 		 * Isso é pra poder mockar os métodos estáticos com o PowerMockito.
 		 * Vai garantir também que com isso os outros testes continuaram funcionando, pois o comportamento padrão do spy é executar os métodos
 		 */
-		service = PowerMockito.spy(service);
+//		service = PowerMockito.spy(service);
 		
 //		service = new LocacaoService();
 //		dao = Mockito.mock(LocacaoDAO.class);
@@ -184,26 +179,7 @@ public class LocacaoServiceTest {
 		Usuario usuario = umUsuario().agora();
 		List<Filme> filmes = Arrays.asList(umFilme().agora());
 		
-		/**
-		 * Nesse teste, além de precisar anotar @PrepareForTest com a classe LocacaoService, foi necessário também colocar na anotação
-		 * a classe DataUtils, visto que nas assertivas é utilizado o método ehHoje, que internamente utiliza o DataUtils, que por sua vez usa new Date
-		 * Foi necessário nesse teste setar o dia fixo, pois essa regra não se aplica a filmes alugados no sábado. 
-		 * Para o sábado tem um método específico
-		 */
-		
-//		PowerMockito.whenNew(Date.class).withNoArguments().thenReturn(DataUtils.obterData(28, 04, 2017)); // Sexta
-		
-		Calendar calendar = Calendar.getInstance();
-		calendar.set(Calendar.DAY_OF_MONTH, 28);
-		calendar.set(Calendar.MONTH, Calendar.APRIL);
-		calendar.set(Calendar.YEAR, 2017);
-		
-		/**
-		 * Para mostrar como fazer com métodos estáticos, foi modificado no método alugar, para pegar a data a partir do calendar.
-		 * E para mockar métodos estáticos, antes precisa dessa linha
-		 */
-		PowerMockito.mockStatic(Calendar.class);
-		PowerMockito.when(Calendar.getInstance()).thenReturn(calendar);
+		Mockito.doReturn(DataUtils.obterData(28, 4, 2017)).when(service).obterData();
 		
 		// Ação
 		Locacao locacao = service.alugarFilme(usuario, filmes);
@@ -212,10 +188,11 @@ public class LocacaoServiceTest {
 		error.checkThat(locacao.getValor(), is(equalTo(5.0)));
 		error.checkThat(locacao.getValor(), is(not(6.0)));
 //		error.checkThat(DataUtils.isMesmaData(locacao.getDataLocacao(), new Date()), is(true));
-		error.checkThat(locacao.getDataLocacao(), ehHoje());
+//		error.checkThat(locacao.getDataLocacao(), ehHoje());
+		error.checkThat(DataUtils.isMesmaData(locacao.getDataLocacao(), DataUtils.obterData(28, 4, 2017)), is(true));
 		
-//		error.checkThat(isMesmaData(locacao.getDataRetorno(), obterDataComDiferencaDias(1)), is(true));
-		error.checkThat(locacao.getDataRetorno(), ehHojeComDiferencaDias(1));
+		error.checkThat(isMesmaData(locacao.getDataRetorno(), DataUtils.obterData(29, 4, 2017)), is(true));
+//		error.checkThat(locacao.getDataRetorno(), ehHojeComDiferencaDias(1));
 		
 		
 		
@@ -412,27 +389,7 @@ public class LocacaoServiceTest {
 		Usuario u = umUsuario().agora();
 		List<Filme> filmes = Arrays.asList(umFilme().comValor(4.0).agora());
 		
-		/**
-		 * Com o PowerMockito da pra mocar construtores. Nesse caso, está mocando a instanciação Date().
-		 * Então nesse execução, sempre quando for instanciado um Date, sem parâmetros, irá retornar a data definida.
-		 * Com isso, da pra simular a execução de um aluguel no sábado.
-		 * 
-		 * Para isso funcionar, ainda precisa anotar a classe com @RunWith(PowerMockRunner.class) // Precisa definir isso para que o Junit assuma as definições do PowerMockito
-		 * Também precisa da anotação @PrepareForTest
-		 */
-//		PowerMockito.whenNew(Date.class).withNoArguments().thenReturn(DataUtils.obterData(29, 04, 2017)); // Sábado
-		
-		Calendar calendar = Calendar.getInstance();
-		calendar.set(Calendar.DAY_OF_MONTH, 29);
-		calendar.set(Calendar.MONTH, Calendar.APRIL);
-		calendar.set(Calendar.YEAR, 2017);
-		
-		/**
-		 * Para mostrar como fazer com métodos estáticos, foi modificado no método alugar, para pegar a data a partir do calendar.
-		 * E para mockar métodos estáticos, antes precisa dessa linha
-		 */
-		PowerMockito.mockStatic(Calendar.class);
-		PowerMockito.when(Calendar.getInstance()).thenReturn(calendar);
+		Mockito.doReturn(DataUtils.obterData(29, 4, 2017)).when(service).obterData();
 		
 		// acao
 		Locacao locacao = service.alugarFilme(u, filmes);
@@ -443,18 +400,6 @@ public class LocacaoServiceTest {
 		
 		assertThat(locacao.getDataRetorno(), caiNaSegunda());
 //		assertThat(locacao.getDataRetorno(), caiEm(Calendar.MONDAY));
-		
-		/**
-		 * Apenas para verificar se o método new Date foi mesmo chamado
-		 */
-//		PowerMockito.verifyNew(Date.class, Mockito.atLeastOnce()).withNoArguments();
-		
-		/**
-		 * PAra verificar a execução de métodos estáticos
-		 */
-		PowerMockito.verifyStatic(Mockito.atLeast(2));
-		// e só coloca a chamada ao método statico
-		Calendar.getInstance();
 				
 	}
 	
@@ -590,33 +535,8 @@ public class LocacaoServiceTest {
 		
 	}
 	
-	@Test
-	public void deveAlugarFilme_SemCalcularValor() throws Exception {
-		
-		// Cenario
-		Usuario usuario = umUsuario().agora();
-		List<Filme> filmes = Arrays.asList(umFilme().agora());
-		
-		/*
-		 * Da pra mockar métodos privados.
-		 * Quando no service, ao chamar o método calcularValorLocacao, que é privado, for chamado com a lista de filmes, 
-		 * deve retornar 1.0, conforme está especificado, e não o valor que seria esperado que ele retorne. Nesse caso o método nem é chamado.
-		 */
-		PowerMockito.doReturn(1.0).when(service, "calcularValorLocacao", filmes);
-		
-		// acao
-		Locacao locacao = service.alugarFilme(usuario, filmes);
-		
-		// verificacao
-		Assert.assertThat(locacao.getValor(), is(1.0));
-		
-		// Verificar que o método abaixo foi chamado n execução acima.
-		PowerMockito.verifyPrivate(service).invoke("calcularValorLocacao", filmes);
-		
-	}
-	
 	/**
-	 * Testando métodos privados 
+	 * Testando métodos privados utilizando apenas reflection
 	 * @throws Exception
 	 */
 	@Test
@@ -626,8 +546,11 @@ public class LocacaoServiceTest {
 		List<Filme> filmes = Arrays.asList(umFilme().agora());
 		
 		// acao
-		// Precisa do cast, por que invokeMethod retorna object
-		Double valor = (Double) Whitebox.invokeMethod(service, "calcularValorLocacao", filmes);
+		Class<LocacaoService> clazz = LocacaoService.class;
+		Method metodo = clazz.getDeclaredMethod("calcularValorLocacao", List.class);
+		metodo.setAccessible(true);
+		
+		Double valor = (Double) metodo.invoke(service, filmes);
 		
 		// verificacao
 		assertThat(valor, is(5.0));
