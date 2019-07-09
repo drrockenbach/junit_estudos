@@ -5,6 +5,7 @@ import br.ce.wcaquino.exception.DivisaoPorZeroException;
 public class Calculadora {
 
 	public int somar(int a, int b) {
+		System.out.println("Executou somar");
 		return a + b;
 	}
 
@@ -19,4 +20,8 @@ public class Calculadora {
 		return a/b;
 	}
 	
+	public void imprime() {
+		System.out.println("Calculadora: imprime");
+		
+	}
 }
