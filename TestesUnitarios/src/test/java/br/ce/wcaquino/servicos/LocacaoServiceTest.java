@@ -25,6 +25,7 @@ import java.util.List;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -58,7 +59,7 @@ public class LocacaoServiceTest {
 	 */
 	
 	@InjectMocks
-	static LocacaoService service;
+	private LocacaoService service;
 	
 	@Mock
 	private SPCService spcService;
@@ -80,6 +81,12 @@ public class LocacaoServiceTest {
 		 * Com as injeções dos mocks, não precisa nem dos sets no LocacaoService.
 		 */
 		MockitoAnnotations.initMocks(this);
+		
+		/**
+		 * Isso é pra poder mockar os métodos estáticos com o PowerMockito.
+		 * Vai garantir também que com isso os outros testes continuaram funcionando, pois o comportamento padrão do spy é executar os métodos
+		 */
+		service = PowerMockito.spy(service);
 		
 //		service = new LocacaoService();
 //		dao = Mockito.mock(LocacaoDAO.class);
@@ -579,6 +586,31 @@ public class LocacaoServiceTest {
 		error.checkThat(locacaoRetornada.getValor(), is(4.0 * dias));
 		error.checkThat(locacaoRetornada.getDataLocacao(), ehHoje());
 		error.checkThat(locacaoRetornada.getDataRetorno(), ehHojeComDiferencaDias(dias));
+		
+	}
+	
+	@Test
+	public void deveAlugarFilme_SemCalcularValor() throws Exception {
+		
+		// Cenario
+		Usuario usuario = umUsuario().agora();
+		List<Filme> filmes = Arrays.asList(umFilme().agora());
+		
+		/*
+		 * Da pra mockar métodos privados.
+		 * Quando no service, ao chamar o método calcularValorLocacao, que é privado, for chamado com a lista de filmes, 
+		 * deve retornar 1.0, conforme está especificado, e não o valor que seria esperado que ele retorne. Nesse caso o método nem é chamado.
+		 */
+		PowerMockito.doReturn(1.0).when(service, "calcularValorLocacao", filmes);
+		
+		// acao
+		Locacao locacao = service.alugarFilme(usuario, filmes);
+		
+		// verificacao
+		Assert.assertThat(locacao.getValor(), is(1.0));
+		
+		// Verificar que o método abaixo foi chamado n execução acima.
+		PowerMockito.verifyPrivate(service).invoke("calcularValorLocacao", filmes);
 		
 	}
 }
