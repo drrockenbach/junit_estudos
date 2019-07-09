@@ -17,7 +17,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.lang.reflect.Executable;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -32,6 +31,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -482,6 +482,40 @@ public class LocacaoServiceTest {
 		service.alugarFilme(usuario, filmes);
 		
 
+	}
+	
+	@Test
+	public void deveProrrogarUmaLocacao() {
+		
+		// cenario
+		Locacao locacao = umLocacao().agora();
+		int dias = 3;
+		
+		//acao
+		service.prorrogarLocacao(locacao, dias);
+		
+		// verificacao
+		
+		/**
+		 * ArgumentCaptor serve para capturar um valor passado para um método. Conforme abaixo, está capturando o objeto locacao que está sendo passado para o método salvar.
+		 * Como o método prorrogarLocacao não retorna a locacao nova gerada pelo método salvar, não teria como avaliar o novo objeto gerado sem isso.
+		 */
+		ArgumentCaptor<Locacao> argCapt = ArgumentCaptor.forClass(Locacao.class);
+		
+		Mockito.verify(dao).salvar(argCapt.capture());
+		
+		Locacao locacaoRetornada = argCapt.getValue();
+		
+		// Utilizando os asserts como abaixo, caso mais de um falhe, mostrara apenas o primeiro
+		// para avaliar todos, utilizar a rule ErrorCollector
+//		assertThat(locacaoRetornada.getValor(), is(4.0 * dias));
+//		assertThat(locacaoRetornada.getDataLocacao(), ehHoje());
+//		assertThat(locacaoRetornada.getDataRetorno(), ehHojeComDiferencaDias(dias));
+		
+		error.checkThat(locacaoRetornada.getValor(), is(4.0 * dias));
+		error.checkThat(locacaoRetornada.getDataLocacao(), ehHoje());
+		error.checkThat(locacaoRetornada.getDataRetorno(), ehHojeComDiferencaDias(dias));
+		
 	}
 }
 
