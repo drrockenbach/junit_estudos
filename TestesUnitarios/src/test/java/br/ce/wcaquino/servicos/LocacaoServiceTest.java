@@ -31,11 +31,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import br.ce.wcaquino.daos.LocacaoDAO;
 import br.ce.wcaquino.entidades.Filme;
@@ -45,6 +49,8 @@ import br.ce.wcaquino.exception.FilmeSemEstoqueException;
 import br.ce.wcaquino.exception.LocadoraException;
 import br.ce.wcaquino.utils.DataUtils;
 
+@RunWith(PowerMockRunner.class) // Precisa definir isso para que o Junit assuma as definições do PowerMockito
+@PrepareForTest({LocacaoService.class, DataUtils.class}) // Também precisa definir isso para o PowerMock funcionar. Nesse caso apenas esse classe estará no escopo
 public class LocacaoServiceTest {
 	
 	/**
@@ -116,6 +122,10 @@ public class LocacaoServiceTest {
 	 */
 	
 	@Test
+	/**
+	 * Considerar o método deveAlugarFilmeComRule, ele está mais completo
+	 * @throws Exception
+	 */
 	public void deveAlugarFilme() throws Exception {
 		
 		/**
@@ -165,6 +175,15 @@ public class LocacaoServiceTest {
 		
 		Usuario usuario = umUsuario().agora();
 		List<Filme> filmes = Arrays.asList(umFilme().agora());
+		
+		/**
+		 * Nesse teste, além de precisar anotar @PrepareForTest com a classe LocacaoService, foi necessário também colocar na anotação
+		 * a classe DataUtils, visto que nas assertivas é utilizado o método ehHoje, que internamente utiliza o DataUtils, que por sua vez usa new Date
+		 * Foi necessário nesse teste setar o dia fixo, pois essa regra não se aplica a filmes alugados no sábado. 
+		 * Para o sábado tem um método específico
+		 */
+		
+		PowerMockito.whenNew(Date.class).withNoArguments().thenReturn(DataUtils.obterData(28, 04, 2017)); // Sexta
 		
 		// Ação
 		Locacao locacao = service.alugarFilme(usuario, filmes);
@@ -362,7 +381,7 @@ public class LocacaoServiceTest {
 	
 	@Test
 //	@Ignore // Se quiser ignorar algum teste
-	public void deveDevolverNaSegundaAoAlugarNoSabado() throws LocadoraException, FilmeSemEstoqueException {
+	public void deveDevolverNaSegundaAoAlugarNoSabado() throws Exception {
 		
 		/**
 		 * Com o assume, posso definir que o meu teste só vai executar em certas condições, como nesse exemplo, só em sabados
@@ -373,10 +392,18 @@ public class LocacaoServiceTest {
 		Usuario u = umUsuario().agora();
 		List<Filme> filmes = Arrays.asList(umFilme().comValor(4.0).agora());
 		
-		Calendar sabado = Calendar.getInstance(); 
-		sabado.set(2019, Calendar.JULY, 6);
+		/**
+		 * Com o PowerMockito da pra mocar construtores. Nesse caso, está mocando a instanciação Date().
+		 * Então nesse execução, sempre quando for instanciado um Date, sem parâmetros, irá retornar a data definida.
+		 * Com isso, da pra simular a execução de um aluguel no sábado.
+		 * 
+		 * Para isso funcionar, ainda precisa anotar a classe com @RunWith(PowerMockRunner.class) // Precisa definir isso para que o Junit assuma as definições do PowerMockito
+		 * Também precisa da anotação @PrepareForTest
+		 */
+		PowerMockito.whenNew(Date.class).withNoArguments().thenReturn(DataUtils.obterData(29, 04, 2017)); // Sábado
+		
 		// acao
-		Locacao locacao = service.alugarFilme(u, filmes, sabado.getTime());
+		Locacao locacao = service.alugarFilme(u, filmes);
 		
 		// verificacao
 //		boolean ehSegunda = DataUtils.verificarDiaSemana(locacao.getDataRetorno(), Calendar.MONDAY);
@@ -384,6 +411,11 @@ public class LocacaoServiceTest {
 		
 		assertThat(locacao.getDataRetorno(), caiNaSegunda());
 //		assertThat(locacao.getDataRetorno(), caiEm(Calendar.MONDAY));
+		
+		/**
+		 * Apenas para verificar se o método new Date foi mesmo chamado
+		 */
+		PowerMockito.verifyNew(Date.class, Mockito.atLeastOnce()).withNoArguments();
 				
 	}
 	
@@ -415,6 +447,7 @@ public class LocacaoServiceTest {
 		// Verifica se na ação, o método possuiNegataivacao foi chamado com o usuário em questão
 		Mockito.verify(spcService).possuiNegativacao(usuario);
 		
+			
 	}
 
 	@Test
