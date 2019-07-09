@@ -183,7 +183,19 @@ public class LocacaoServiceTest {
 		 * Para o sábado tem um método específico
 		 */
 		
-		PowerMockito.whenNew(Date.class).withNoArguments().thenReturn(DataUtils.obterData(28, 04, 2017)); // Sexta
+//		PowerMockito.whenNew(Date.class).withNoArguments().thenReturn(DataUtils.obterData(28, 04, 2017)); // Sexta
+		
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(Calendar.DAY_OF_MONTH, 28);
+		calendar.set(Calendar.MONTH, Calendar.APRIL);
+		calendar.set(Calendar.YEAR, 2017);
+		
+		/**
+		 * Para mostrar como fazer com métodos estáticos, foi modificado no método alugar, para pegar a data a partir do calendar.
+		 * E para mockar métodos estáticos, antes precisa dessa linha
+		 */
+		PowerMockito.mockStatic(Calendar.class);
+		PowerMockito.when(Calendar.getInstance()).thenReturn(calendar);
 		
 		// Ação
 		Locacao locacao = service.alugarFilme(usuario, filmes);
@@ -400,7 +412,19 @@ public class LocacaoServiceTest {
 		 * Para isso funcionar, ainda precisa anotar a classe com @RunWith(PowerMockRunner.class) // Precisa definir isso para que o Junit assuma as definições do PowerMockito
 		 * Também precisa da anotação @PrepareForTest
 		 */
-		PowerMockito.whenNew(Date.class).withNoArguments().thenReturn(DataUtils.obterData(29, 04, 2017)); // Sábado
+//		PowerMockito.whenNew(Date.class).withNoArguments().thenReturn(DataUtils.obterData(29, 04, 2017)); // Sábado
+		
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(Calendar.DAY_OF_MONTH, 29);
+		calendar.set(Calendar.MONTH, Calendar.APRIL);
+		calendar.set(Calendar.YEAR, 2017);
+		
+		/**
+		 * Para mostrar como fazer com métodos estáticos, foi modificado no método alugar, para pegar a data a partir do calendar.
+		 * E para mockar métodos estáticos, antes precisa dessa linha
+		 */
+		PowerMockito.mockStatic(Calendar.class);
+		PowerMockito.when(Calendar.getInstance()).thenReturn(calendar);
 		
 		// acao
 		Locacao locacao = service.alugarFilme(u, filmes);
@@ -415,7 +439,14 @@ public class LocacaoServiceTest {
 		/**
 		 * Apenas para verificar se o método new Date foi mesmo chamado
 		 */
-		PowerMockito.verifyNew(Date.class, Mockito.atLeastOnce()).withNoArguments();
+//		PowerMockito.verifyNew(Date.class, Mockito.atLeastOnce()).withNoArguments();
+		
+		/**
+		 * PAra verificar a execução de métodos estáticos
+		 */
+		PowerMockito.verifyStatic(Mockito.atLeast(2));
+		// e só coloca a chamada ao método statico
+		Calendar.getInstance();
 				
 	}
 	
