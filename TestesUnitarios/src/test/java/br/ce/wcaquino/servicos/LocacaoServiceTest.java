@@ -17,6 +17,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.lang.reflect.Executable;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -387,7 +388,7 @@ public class LocacaoServiceTest {
 	}
 	
 	@Test 
-	public void naoDeveAlugarFilmeParaNegativadoSPC() throws /*LocadoraException,*/ FilmeSemEstoqueException {
+	public void naoDeveAlugarFilmeParaNegativadoSPC() throws Exception {
 		
 		Usuario usuario = umUsuario().agora();
 		List<Filme> filmes = Arrays.asList(umFilme().agora());
@@ -456,6 +457,31 @@ public class LocacaoServiceTest {
 		// Isso é só um exemplo, não seria necessário testar isso, pois spcService não é utilizado nesse método notificarAtraso
 		Mockito.verifyZeroInteractions(spcService);
 		
+	}
+	
+	@Test
+	public void deveTratarErroSPC() throws Exception {
+		
+		// Cenario
+		Usuario usuario = umUsuario().agora();
+		List<Filme> filmes = Arrays.asList(umFilme().agora());
+		
+		/*
+		 * Quando o método possuiNegativacao for chamado com o usuario em questão, simplemente ele retorna uma exception
+		 * Isso serve para poder validar o tratamento de excessoes, pois o esperado é que quando esse método retornar uma exception,
+		 * o alugarFilme deve tratar e lançar uma  LocadoraException("Problemas com SPC, tente novamente")
+		 */
+
+		Mockito.when(spcService.possuiNegativacao(usuario)).thenThrow(new Exception("Falha catastrófica"));
+
+		// verificacao		
+		exException.expect(LocadoraException.class);
+		exException.expectMessage("Problemas com SPC, tente novamente");
+		
+		// acao
+		service.alugarFilme(usuario, filmes);
+		
+
 	}
 }
 
