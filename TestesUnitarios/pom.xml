@@ -3,6 +3,32 @@
   <groupId>br.ce.wcaquino</groupId>
   <artifactId>TestesUnitarios</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+	
+	<properties>
+    	<maven.compiler.target>1.8</maven.compiler.target>
+    	<maven.compiler.source>1.8</maven.compiler.source>
+	</properties>
+
+	<!-- Configuracao para rodar os testes no build de forma paralelizada -->
+	<build>
+		<testSourceDirectory>src</testSourceDirectory>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.18.1</version>
+				<configuration>
+					<includes>br/ce/wcaquino/**/*.java</includes> <!-- O surefire por padrão, só executa runner descendentes de ParentRunner. O powermock não está nesse caso, por isso
+																	precisa especificar esse includes dizendo pra rodar todas as classes do caminho em questao  -->
+					<threadCount>2</threadCount>
+					<!-- <useUnlimitedThreads>true</useUnlimitedThreads> Define pra utilizar quantas threads quiser -->
+					<parallel>all</parallel> <!-- com o parâmetro methods, vai executar uma classe por vez, e paralelizar os methos de test
+													tem outros parâmetros, como classes, que paraleliza por classe de teste.
+													Parâmetro all paraleliza tudo -->
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
   
   <dependencies>
   	<dependency>

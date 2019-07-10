@@ -5,12 +5,10 @@ import static org.junit.Assert.assertEquals;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import br.ce.wcaquino.exception.DivisaoPorZeroException;
-import br.ce.wcaquino.runners.ParallelRunner;
 
-@RunWith(ParallelRunner.class)
+//@RunWith(ParallelRunner.class)
 public class CalculadoraTest {
 
 	private Calculadora calc;
