@@ -5,7 +5,7 @@ import br.ce.wcaquino.exception.DivisaoPorZeroException;
 public class Calculadora {
 
 	public int somar(int a, int b) {
-		System.out.println("Executou somar");
+//		System.out.println("Executou somar");
 		return a + b;
 	}
 

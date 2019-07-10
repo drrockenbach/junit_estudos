@@ -2,11 +2,15 @@ package br.ce.wcaquino.servicos;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import br.ce.wcaquino.exception.DivisaoPorZeroException;
+import br.ce.wcaquino.runners.ParallelRunner;
 
+@RunWith(ParallelRunner.class)
 public class CalculadoraTest {
 
 	private Calculadora calc;
@@ -14,6 +18,12 @@ public class CalculadoraTest {
 	@Before
 	public void setup() {
 		calc = new Calculadora();
+		System.out.println("Iniciando....");
+	}
+	
+	@After
+	public void after() {
+		System.out.println("Finalizando....");
 	}
 	
 	@Test
@@ -27,9 +37,22 @@ public class CalculadoraTest {
 		// acao
 		int resultado = calc.somar(a, b);
 
+		// Pra testar paralelismo
+		esperar(500);
+		
 		// verificacao
 		assertEquals(8, resultado);
 		
+		
+	}
+
+	private void esperar(long esperar)  {
+		try {
+			Thread.sleep(esperar);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Test
@@ -43,6 +66,7 @@ public class CalculadoraTest {
 		// acao
 		int resultado = calc.subtrair(a, b);
 
+		esperar(300);
 		// verificacao
 		assertEquals(2, resultado);
 	}
@@ -60,7 +84,7 @@ public class CalculadoraTest {
 
 		// verificacao
 		assertEquals(2, resultado, 0);
-		
+		esperar(100);
 	}
 	
 	@Test(expected=DivisaoPorZeroException.class)
@@ -70,8 +94,8 @@ public class CalculadoraTest {
 		int b = 0;
 		Calculadora calc = new Calculadora();
 		
+		esperar(800);
 		// acao
 		calc.dividir(a, b);
-
 	}
 }
